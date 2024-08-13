@@ -726,6 +726,9 @@ public class HTTPClient {
         /// which is the recommended setting. Only set this to `false` when attempting to trigger a particular error path.
         public var networkFrameworkWaitForConnectivity: Bool
 
+        /// Closure that allows configuring the client bootstrap.
+        public var configureBootstrap: (NIOClientTCPBootstrapProtocol) -> Void
+
         /// The maximum number of times each connection can be used before it is replaced with a new one. Use `nil` (the default)
         /// if no limit should be applied to each connection.
         ///
@@ -755,6 +758,7 @@ public class HTTPClient {
             self.decompression = decompression
             self.httpVersion = .automatic
             self.networkFrameworkWaitForConnectivity = true
+            self.configureBootstrap = { _ in }
         }
 
         public init(tlsConfiguration: TLSConfiguration? = nil,

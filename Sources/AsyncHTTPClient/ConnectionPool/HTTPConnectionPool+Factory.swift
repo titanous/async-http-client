@@ -320,6 +320,7 @@ extension HTTPConnectionPool.ConnectionFactory {
     ) -> NIOClientTCPBootstrapProtocol {
         #if canImport(Network)
         if #available(OSX 10.14, iOS 12.0, tvOS 12.0, watchOS 6.0, *), let tsBootstrap = NIOTSConnectionBootstrap(validatingGroup: eventLoop) {
+            self.clientConfiguration.configureBootstrap(tsBootstrap)
             return tsBootstrap
                 .channelOption(NIOTSChannelOptions.waitForActivity, value: self.clientConfiguration.networkFrameworkWaitForConnectivity)
                 .connectTimeout(deadline - NIODeadline.now())
@@ -336,6 +337,7 @@ extension HTTPConnectionPool.ConnectionFactory {
         #endif
 
         if let nioBootstrap = ClientBootstrap(validatingGroup: eventLoop) {
+            self.clientConfiguration.configureBootstrap(nioBootstrap)
             return nioBootstrap
                 .connectTimeout(deadline - NIODeadline.now())
         }
@@ -413,7 +415,8 @@ extension HTTPConnectionPool.ConnectionFactory {
             let bootstrapFuture = tlsConfig.getNWProtocolTLSOptions(on: eventLoop, serverNameIndicatorOverride: key.serverNameIndicatorOverride).map {
                 options -> NIOClientTCPBootstrapProtocol in
 
-                tsBootstrap
+                self.clientConfiguration.configureBootstrap(tsBootstrap)
+                return tsBootstrap
                     .channelOption(NIOTSChannelOptions.waitForActivity, value: self.clientConfiguration.networkFrameworkWaitForConnectivity)
                     .connectTimeout(deadline - NIODeadline.now())
                     .tlsOptions(options)
@@ -461,6 +464,7 @@ extension HTTPConnectionPool.ConnectionFactory {
                     }
                 }
             }
+        self.clientConfiguration.configureBootstrap(bootstrap)
 
         return eventLoop.makeSucceededFuture(bootstrap)
     }
